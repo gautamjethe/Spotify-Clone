@@ -64,13 +64,18 @@ const logInWithSpotify = async (anonymous?: boolean) => {
   const codeChallenge = base64encode(hashed);
 
   if (anonymous) {
+    // For anonymous login, use authorization code flow with limited scopes
+    localStorage.setItem('was_anonymous', 'true');
     authUrl.search = new URLSearchParams({
       client_id,
-      scope: '',
+      scope: 'streaming user-read-playback-state user-modify-playback-state user-read-currently-playing',
       redirect_uri,
-      response_type: 'token',
+      response_type: 'code',
+      code_challenge_method: 'S256',
+      code_challenge: codeChallenge,
     }).toString();
   } else {
+    localStorage.removeItem('was_anonymous');
     authUrl.search = new URLSearchParams({
       client_id,
       redirect_uri,
@@ -120,8 +125,27 @@ const getToken = async () => {
 
   const urlParams = new URLSearchParams(window.location.search);
 
+  // Check for OAuth errors first
+  const error = urlParams.get('error');
+  if (error) {
+    console.error('OAuth Error:', error);
+    localStorage.removeItem('was_anonymous');
+    return [null, false];
+  }
+
   let code = urlParams.get('code') as string;
-  if (code) return [await requestToken(code), true];
+  if (code) {
+    try {
+      const requestedToken = await requestToken(code);
+      // Check if it's registered user scope or limited anonymous scope
+      const isFullUser = localStorage.getItem('was_anonymous') !== 'true';
+      return [requestedToken, isFullUser];
+    } catch (error) {
+      console.error('Token request failed:', error);
+      localStorage.removeItem('was_anonymous');
+      return [null, false];
+    }
+  }
 
   const publicToken = getFromLocalStorageWithExpiry('public_access_token');
   if (publicToken) return [publicToken, false];
