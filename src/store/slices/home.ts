@@ -42,8 +42,13 @@ const initialState: {
 };
 
 export const fetchMadeForYou = createAsyncThunk('home/fetchMadeForYou', async () => {
-  const response = await categoriesService.fetchCategoryPlaylists(MADE_FOR_YOU_URI, { limit: 50 });
-  return response.data.playlists.items;
+  try {
+    const response = await categoriesService.fetchCategoryPlaylists(MADE_FOR_YOU_URI, { limit: 50 });
+    return response.data.playlists.items;
+  } catch (error) {
+    console.error('Failed to fetch Made For You playlists:', error);
+    return []; // Return empty array on error to prevent breaking the page
+  }
 });
 
 export const fetchRanking = createAsyncThunk('home/fetchRanking', async () => {

@@ -68,7 +68,7 @@ const logInWithSpotify = async (anonymous?: boolean) => {
     localStorage.setItem('was_anonymous', 'true');
     authUrl.search = new URLSearchParams({
       client_id,
-      scope: 'streaming user-read-playback-state user-modify-playback-state user-read-currently-playing',
+      scope: 'streaming user-read-playback-state user-modify-playback-state user-read-currently-playing user-library-read',
       redirect_uri,
       response_type: 'code',
       code_challenge_method: 'S256',

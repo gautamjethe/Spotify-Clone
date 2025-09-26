@@ -65,8 +65,13 @@ export const fetchArtist = createAsyncThunk<[Artist, boolean, TrackWithSave[], A
     const appearsOn = (responses[5].data as Pagination<Album>).items as Album[];
     const compilations = (responses[6].data as Pagination<Album>).items as Album[];
 
+    // Only check saved tracks for authenticated users
+    const savedTracksPromise = user
+      ? userService.checkSavedTracks(tracks.map((track) => track.id))
+      : Promise.resolve({ data: Array(tracks.length).fill(false) });
+
     const extraResponses = await Promise.all([
-      userService.checkSavedTracks(tracks.map((track) => track.id)).catch(() => ({ data: [] })),
+      savedTracksPromise,
     ]);
 
     const saved = extraResponses[0].data as boolean[];

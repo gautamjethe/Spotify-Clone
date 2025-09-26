@@ -55,8 +55,13 @@ export const fetchAlbum = createAsyncThunk<
   const { items } = responses[1].data as Pagination<Track>;
   const [following] = responses[2].data as boolean[];
 
+  // Only check saved tracks for authenticated users
+  const savedTracksPromise = user
+    ? userService.checkSavedTracks(items.map((item) => item.id))
+    : Promise.resolve({ data: Array(items.length).fill(false) });
+
   const extraPromises = [
-    userService.checkSavedTracks(items.map((item) => item.id)),
+    savedTracksPromise,
     artistService.fetchArtist(album.artists[0].id),
     artistService.fetchArtistAlbums(album.artists[0].id, { limit: 10 }),
   ];

@@ -20,7 +20,14 @@ export const TopMixes: FC<NewReleasesProps> = () => {
   const madeForYou = useAppSelector((state) => state.home.madeForYou);
 
   const items = useMemo(
-    () => madeForYou.filter((p) => p.name.toLowerCase().includes('mix')).slice(0, 12),
+    () => {
+      return madeForYou
+        .filter((p) => {
+          const name = p.name.toLowerCase();
+          return name.includes('mix') || name.includes('blend') || name.includes('shared');
+        })
+        .slice(0, 12);
+    },
     [madeForYou]
   );
 
